@@ -55,7 +55,7 @@ function App() {
           </div> */}
 
           <div>
-            <div className="py-4"></div>
+            <div className="py-4 !w-fit"></div>
             <DateTimePicker
               onChange={(date) => {
                 console.log("Selected Date:", date);
@@ -68,7 +68,7 @@ function App() {
             <NotificationButton />
           </div>
         </div>
-        <div className="grid  grid-cols-1 md:grid-cols-2 justify-center px-8 py-2 items-center min-h-screen bg-gray-100">
+        <div className="grid  grid-cols-1 md:grid-cols-2 justify-center  items-center min-h-screen px-8 bg-gray-100">
           <ChartWidget />
           <MultiDocumentUpload value={docs} onChange={setDocs} />
         </div>

@@ -39,7 +39,7 @@ export const NotificationButton: React.FC = () => {
 
     new Notification("Test Notification", {
       body: "This is a test notification from your React app.",
-      icon: "/hello.jpg",
+      icon: "/hello.png",
     });
   };
 

@@ -23,7 +23,7 @@ messaging.onBackgroundMessage((req) => {
   const notificationTitle = req.notification.title;
   const notificationOptions = {
     body: req.notification.body,
-    icon: "/hello.jpg",
+    icon: "/hello.png",
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);

@@ -26,7 +26,6 @@ const ChartWidget: React.FC = () => {
   const [startDate, setStartDate] = useState(dayjs().subtract(7, "day"));
   const [endDate, setEndDate] = useState(dayjs());
 
-  // Sample data
   const allData: DataPoint[] = Array.from({ length: 30 }).map((_, i) => ({
     date: dayjs().subtract(i, "day").format("YYYY-MM-DD"),
     value: Math.floor(Math.random() * 100),
@@ -39,7 +38,7 @@ const ChartWidget: React.FC = () => {
 
   return (
     <div className="bg-white px-4 rounded shadow w-full max-w-2xl">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center p-2 gap-2 mb-4">
         <select
           value={chartType}
           onChange={(e) =>

@@ -1,6 +1,5 @@
 import "./App.css";
 import ChartWidget from "./components/ChartWidget";
-// import CustomCalender from "./components/CustomCalender";
 import { DateTimePicker } from "./components/DateTimePicker";
 import { MultiDocumentUpload } from "./components/MultiDocumentUpload";
 import { MultiSelectDropdown } from "./components/MultiSelectDropdown";
@@ -38,40 +37,22 @@ function App() {
 
   return (
     <>
-      <div className="w-screen h-screen bg-gray-100 flex flex-col">
-        <div className="px-10 flex w-1/2  justify-between items-center">
-          <div>
-            <label className="block mb-2 font-semibold">
-              Property Sub-Type <span className="text-red-500">*</span>
-            </label>
-            <MultiSelectDropdown
-              loadOptions={loadOptions}
-              value={selectedOptions}
-              onChange={(options) => setSelectedOptions(options)}
-            />
-          </div>
-          {/* <div>
-            <CustomCalender />
-          </div> */}
-
-          <div>
-            <div className="py-4 !w-fit"></div>
-            <DateTimePicker
-              onChange={(date) => {
-                console.log("Selected Date:", date);
-              }}
-            />
-          </div>
-
-          <div>
-            <div className="py-4"></div>
-            <NotificationButton />
-          </div>
-        </div>
-        <div className="grid  grid-cols-1 md:grid-cols-2 justify-center  items-center min-h-screen px-8 bg-gray-100">
-          <ChartWidget />
-          <MultiDocumentUpload value={docs} onChange={setDocs} />
-        </div>
+      <div className="grid grid-cols-1 gap-4 p-8 bg-zinc-100 sm:grid-cols-2 md:grid-cols-3">
+        <DateTimePicker
+          onChange={(date) => {
+            console.log("Selected Date:", date.toLocaleString());
+          }}
+        />
+        <MultiSelectDropdown
+          loadOptions={loadOptions}
+          value={selectedOptions}
+          onChange={(options) => setSelectedOptions(options)}
+        />
+        <NotificationButton />
+      </div>
+      <div className="grid gap-8 p-8 bg-zinc-100 sm:grid-cols-2 grid-cols-1">
+        <ChartWidget />
+        <MultiDocumentUpload value={docs} onChange={setDocs} />
       </div>
     </>
   );

@@ -5,7 +5,8 @@ import {
   ChevronDown,
   Calendar,
 } from "lucide-react";
-import { useEffect, useRef, useState, type JSX } from "react";
+import React, { useEffect, useRef, useState, type JSX } from "react";
+import { dayNames, monthNames } from "../../mocks";
 
 interface TimeState {
   hour: number;
@@ -32,42 +33,41 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
   minDate,
   maxDate,
 }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(value || null);
-  const [currentMonth, setCurrentMonth] = useState<Date>(value || new Date());
-  const [selectedTime, setSelectedTime] = useState<TimeState>({
-    hour: value ? value.getHours() % 12 || 12 : 12,
-    minute: value ? value.getMinutes() : 46,
-    period: value ? (value.getHours() >= 12 ? "PM" : "AM") : "PM",
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(value ?? null);
+  const [currentMonth, setCurrentMonth] = useState<Date>(value ?? new Date());
+  const [rangeStartDate, setRangeStartDate] = useState<Date | null>(null);
+  const [rangeEndDate, setRangeEndDate] = useState<Date | null>(null);
+
+  const [selectedTime, setSelectedTime] = useState<TimeState>(() => {
+    const date = value ?? new Date();
+    return {
+      hour: date.getHours() % 12 || 12,
+      minute: date.getMinutes(),
+      period: date.getHours() >= 12 ? "PM" : "AM",
+    };
   });
-  const [quickRange, setQuickRange] = useState<string>("");
+
+  const [quickRange, setQuickRange] = useState("");
   const widgetRef = useRef<HTMLDivElement>(null);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const quickRangeOptions = [
     { label: "Today", value: "today" },
-    { label: "Last 7 Days", value: "last7days" },
+    { label: "Next 7 Days", value: "next7days" },
     { label: "This Month", value: "thismonth" },
   ];
 
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const addDays = (date: Date, days: number) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         widgetRef.current &&
         !widgetRef.current.contains(event.target as Node)
@@ -75,7 +75,6 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
         setIsOpen(false);
       }
     };
-
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
@@ -83,65 +82,56 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
     }
   }, [isOpen]);
 
-  const handleQuickRange = (range: string): void => {
+  const handleQuickRange = (range: string) => {
     setQuickRange(range);
-    const today = new Date();
-    let date = new Date();
 
-    switch (range) {
-      case "today":
-        date = new Date();
-        break;
-      case "last7days":
-        date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case "thismonth":
-        date = new Date(today.getFullYear(), today.getMonth(), 1);
-        break;
-    }
+    let startDate = today;
+    let endDate = today;
 
-    setSelectedDate(date);
-    setCurrentMonth(date);
+    if (range === "next7days") endDate = addDays(today, 7);
+    if (range === "thismonth")
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    setRangeStartDate(startDate);
+    setRangeEndDate(endDate);
+    setSelectedDate(startDate);
+    setCurrentMonth(startDate);
   };
 
-  const handleSet = (): void => {
-    if (selectedDate) {
-      const finalDateTime = new Date(selectedDate);
-      let hour = selectedTime.hour;
-      if (selectedTime.period === "PM" && hour !== 12) hour += 12;
-      if (selectedTime.period === "AM" && hour === 12) hour = 0;
-      finalDateTime.setHours(hour, selectedTime.minute, 0, 0);
-
-      onChange?.(finalDateTime);
-      setIsOpen(false);
-    }
+  const handleSet = () => {
+    if (!selectedDate) return;
+    const finalDateTime = new Date(selectedDate);
+    let hour = selectedTime.hour;
+    if (selectedTime.period === "PM" && hour !== 12) hour += 12;
+    if (selectedTime.period === "AM" && hour === 12) hour = 0;
+    finalDateTime.setHours(hour, selectedTime.minute, 0, 0);
+    onChange?.(finalDateTime);
+    setIsOpen(false);
   };
 
-  const handleCancel = (): void => {
+  const handleCancel = () => {
     setIsOpen(false);
     setQuickRange("");
+    setRangeStartDate(null);
+    setRangeEndDate(null);
   };
 
-  const isDateDisabled = (date: Date): boolean => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-
-    if (date < today) return true;
-    if (minDate && date < minDate) return true;
-    if (maxDate && date > maxDate) return true;
+  const isDateDisabled = (date: Date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    if (d < today) return true;
+    if (minDate && d < minDate) return true;
+    if (maxDate && d > maxDate) return true;
     return false;
   };
 
   const renderCalendar = (): JSX.Element => {
-    const today = new Date();
     const currentYear = currentMonth.getFullYear();
     const currentMonthIndex = currentMonth.getMonth();
     const firstDay = new Date(currentYear, currentMonthIndex, 1);
     const lastDay = new Date(currentYear, currentMonthIndex + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-
     const days: JSX.Element[] = [];
 
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -157,28 +147,36 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
       );
     }
 
-    // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonthIndex, day);
-      const isToday = date.toDateString() === today.toDateString();
+      const isToday = date.toDateString() === new Date().toDateString();
       const isSelected =
         selectedDate && date.toDateString() === selectedDate.toDateString();
       const disabled = isDateDisabled(date);
+      const inRange =
+        rangeStartDate &&
+        rangeEndDate &&
+        date >= rangeStartDate &&
+        date <= rangeEndDate;
 
       days.push(
         <button
           key={day}
           onClick={() => !disabled && setSelectedDate(date)}
           disabled={disabled}
-          className={`p-2 text-sm w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-            isSelected
-              ? "bg-teal-500 text-white"
-              : isToday
-              ? "bg-blue-100 text-blue-600"
-              : disabled
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-white hover:bg-gray-700"
-          }`}
+          className={`p-2 text-sm w-8 h-8 rounded-full flex items-center justify-center transition-colors
+            ${
+              isSelected
+                ? "bg-teal-500 text-white"
+                : inRange
+                ? "bg-teal-300 text-black"
+                : isToday
+                ? "bg-blue-100 text-blue-600"
+                : disabled
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-white hover:bg-gray-700"
+            }
+          `}
         >
           {day}
         </button>
@@ -224,70 +222,114 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
     );
   };
 
-  const renderTimePicker = (): JSX.Element => {
-    return (
-      <div className="flex items-center justify-center gap-2 mb-4">
-        {/* Hour Controls */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() =>
-              setSelectedTime((prev) => ({
-                ...prev,
-                hour: prev.hour === 12 ? 1 : prev.hour + 1,
-              }))
-            }
-            className="p-1 hover:bg-gray-600 rounded"
-          >
-            <ChevronUp className="w-3 h-3 text-gray-300" />
-          </button>
-          <div className="bg-white px-3 py-1 rounded text-black font-mono">
-            {selectedTime.hour.toString().padStart(2, "0")}
-          </div>
-          <button
-            onClick={() =>
-              setSelectedTime((prev) => ({
-                ...prev,
-                hour: prev.hour === 1 ? 12 : prev.hour - 1,
-              }))
-            }
-            className="p-1 hover:bg-gray-600 rounded"
-          >
-            <ChevronDown className="w-3 h-3 text-gray-300" />
-          </button>
+  const handleTimeKey = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    field: "hour" | "minute" | "period"
+  ) => {
+    if (field === "hour") {
+      if (e.key === "ArrowUp")
+        setSelectedTime((prev) => ({
+          ...prev,
+          hour: prev.hour === 12 ? 1 : prev.hour + 1,
+        }));
+      if (e.key === "ArrowDown")
+        setSelectedTime((prev) => ({
+          ...prev,
+          hour: prev.hour === 1 ? 12 : prev.hour - 1,
+        }));
+    }
+
+    if (field === "minute") {
+      if (e.key === "ArrowUp")
+        setSelectedTime((prev) => ({
+          ...prev,
+          minute: prev.minute === 59 ? 0 : prev.minute + 1,
+        }));
+      if (e.key === "ArrowDown")
+        setSelectedTime((prev) => ({
+          ...prev,
+          minute: prev.minute === 0 ? 59 : prev.minute - 1,
+        }));
+    }
+
+    if (field === "period") {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown")
+        setSelectedTime((prev) => ({
+          ...prev,
+          period: prev.period === "AM" ? "PM" : "AM",
+        }));
+    }
+  };
+
+  const renderTimePicker = (): JSX.Element => (
+    <div className="flex items-center justify-center gap-2 mb-4">
+      <div
+        className="flex flex-col items-center"
+        tabIndex={0}
+        onKeyDown={(e) => handleTimeKey(e, "hour")}
+      >
+        <button
+          onClick={() =>
+            setSelectedTime((prev) => ({
+              ...prev,
+              hour: prev.hour === 12 ? 1 : prev.hour + 1,
+            }))
+          }
+          className="p-1 hover:bg-gray-600 rounded"
+        >
+          <ChevronUp className="w-3 h-3 text-gray-300" />
+        </button>
+        <div className="bg-white px-3 py-1 rounded text-black font-mono">
+          {selectedTime.hour.toString().padStart(2, "0")}
         </div>
+        <button
+          onClick={() =>
+            setSelectedTime((prev) => ({
+              ...prev,
+              hour: prev.hour === 1 ? 12 : prev.hour - 1,
+            }))
+          }
+          className="p-1 hover:bg-gray-600 rounded"
+        >
+          <ChevronDown className="w-3 h-3 text-gray-300" />
+        </button>
+      </div>
 
-        <span className="text-white">:</span>
+      <span className="text-white">:</span>
 
-        {/* Minute Controls */}
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() =>
-              setSelectedTime((prev) => ({
-                ...prev,
-                minute: prev.minute === 59 ? 0 : prev.minute + 1,
-              }))
-            }
-            className="p-1 hover:bg-gray-600 rounded"
-          >
-            <ChevronUp className="w-3 h-3 text-gray-300" />
-          </button>
-          <div className="bg-white px-3 py-1 rounded text-black font-mono">
-            {selectedTime.minute.toString().padStart(2, "0")}
-          </div>
-          <button
-            onClick={() =>
-              setSelectedTime((prev) => ({
-                ...prev,
-                minute: prev.minute === 0 ? 59 : prev.minute - 1,
-              }))
-            }
-            className="p-1 hover:bg-gray-600 rounded"
-          >
-            <ChevronDown className="w-3 h-3 text-gray-300" />
-          </button>
+      <div
+        className="flex flex-col items-center"
+        tabIndex={0}
+        onKeyDown={(e) => handleTimeKey(e, "minute")}
+      >
+        <button
+          onClick={() =>
+            setSelectedTime((prev) => ({
+              ...prev,
+              minute: prev.minute === 59 ? 0 : prev.minute + 1,
+            }))
+          }
+          className="p-1 hover:bg-gray-600 rounded"
+        >
+          <ChevronUp className="w-3 h-3 text-gray-300" />
+        </button>
+        <div className="bg-white px-3 py-1 rounded text-black font-mono">
+          {selectedTime.minute.toString().padStart(2, "0")}
         </div>
+        <button
+          onClick={() =>
+            setSelectedTime((prev) => ({
+              ...prev,
+              minute: prev.minute === 0 ? 59 : prev.minute - 1,
+            }))
+          }
+          className="p-1 hover:bg-gray-600 rounded"
+        >
+          <ChevronDown className="w-3 h-3 text-gray-300" />
+        </button>
+      </div>
 
-        {/* AM/PM Toggle */}
+      <div tabIndex={0} onKeyDown={(e) => handleTimeKey(e, "period")}>
         <button
           onClick={() =>
             setSelectedTime((prev) => ({
@@ -300,16 +342,19 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
           {selectedTime.period}
         </button>
       </div>
-    );
-  };
+    </div>
+  );
 
-  const displayValue = selectedDate
-    ? `${selectedDate.toLocaleDateString()}, ${
-        selectedTime.hour
-      }:${selectedTime.minute.toString().padStart(2, "0")} ${
-        selectedTime.period
-      }`
-    : placeholder;
+  const displayValue =
+    quickRange && rangeStartDate && rangeEndDate
+      ? `${rangeStartDate.toLocaleDateString()} - ${rangeEndDate.toLocaleDateString()}`
+      : selectedDate
+      ? `${selectedDate.toLocaleDateString()}, ${selectedTime.hour
+          .toString()
+          .padStart(2, "0")}:${selectedTime.minute
+          .toString()
+          .padStart(2, "0")} ${selectedTime.period}`
+      : placeholder;
 
   return (
     <div ref={widgetRef} className={`relative ${className}`}>
@@ -331,7 +376,6 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
 
       {isOpen && (
         <div className="absolute top-full mt-2 bg-slate-800 rounded-lg shadow-xl border border-gray-700 p-4 z-50 min-w-80">
-          {/* Quick Range Options */}
           <div className="flex gap-2 mb-4">
             {quickRangeOptions.map((option) => (
               <button
@@ -351,7 +395,6 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
           {renderCalendar()}
           {renderTimePicker()}
 
-          {/* Action Buttons */}
           <div className="flex justify-between">
             <button
               onClick={handleCancel}
@@ -367,7 +410,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
             </button>
           </div>
 
-          {selectedDate && (
+          {(selectedDate || (quickRange && rangeEndDate)) && (
             <div className="mt-2 text-xs text-gray-400 text-center">
               {displayValue}
             </div>

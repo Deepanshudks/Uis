@@ -1,10 +1,50 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { requestForToken, messaging } from "../../configs/firebase";
+import { onMessage } from "firebase/messaging";
 
-export const Notification: React.FC = () => {
-  const handleTestNotification = () => {};
+export const NotificationButton: React.FC = () => {
+  const [deviceToken, setDeviceToken] = useState<string | null>(null);
+  const [notification, setNotification] = useState<any>(null);
+
+  const getPermissionandNotify = async () => {
+    const isPermit = await Notification.requestPermission();
+    if (isPermit === "granted") {
+      requestForToken().then((token) => {
+        console.log(token);
+        if (token) {
+          setDeviceToken(token);
+        }
+      });
+    } else {
+      alert("Notification permission denied");
+    }
+  };
+
+  useEffect(() => {
+    getPermissionandNotify();
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Message received (foreground): ", payload);
+      setNotification(payload.notification);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleTestNotification = () => {
+    if (!("Notification" in window)) {
+      alert("This browser does not support notifications.");
+      return;
+    }
+
+    new Notification("Test Notification", {
+      body: "This is a test notification from your React app.",
+      icon: "/hello.jpg",
+    });
+  };
 
   return (
-    <div className=" p-6">
+    <div className="p-6">
       <button
         onClick={handleTestNotification}
         className="px-4 py-2 w-fit bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -12,19 +52,18 @@ export const Notification: React.FC = () => {
         Test Notification
       </button>
 
-      {/* <div className="flex justify-between items-center pt-4 border-t">
-        <p className="text-sm text-gray-500">
-          Active notifications: {notifications.length}
+      {deviceToken && (
+        <p className="mt-3 text-xs text-gray-500 break-words">
+          Device Token: {deviceToken}
         </p>
-        {notifications.length > 0 && (
-          <button
-            onClick={clearAll}
-            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-          >
-            Clear All
-          </button>
-        )}
-      </div> */}
+      )}
+
+      {notification && (
+        <div className="mt-4 p-3 bg-green-100 text-green-700 rounded">
+          <p className="font-semibold">{notification.title}</p>
+          <p>{notification.body}</p>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,9 +1,10 @@
 import "./App.css";
 import ChartWidget from "./components/ChartWidget";
+import CustomCalender from "./components/CustomCalender";
 import { DateTimePicker } from "./components/DateTimePicker";
 import { MultiDocumentUpload } from "./components/MultiDocumentUpload";
 import { MultiSelectDropdown } from "./components/MultiSelectDropdown";
-import { Notification } from "./components/Notification";
+import { NotificationButton } from "./components/Notification";
 import { dropdownLoadOptions, type DocumentType } from "./mocks";
 
 import { useState } from "react";
@@ -23,6 +24,18 @@ function App() {
     });
   };
 
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/firebase-messaging-sw.js")
+      .then((registration) => {
+        console.log(
+          "Service Worker registered with scope:",
+          registration.scope
+        );
+      })
+      .catch((err) => console.log("Service Worker registration failed:", err));
+  }
+
   return (
     <>
       <div className="w-screen h-screen bg-gray-100 flex flex-col">
@@ -37,6 +50,9 @@ function App() {
               onChange={(options) => setSelectedOptions(options)}
             />
           </div>
+          {/* <div>
+            <CustomCalender />
+          </div> */}
 
           <div>
             <div className="py-4"></div>
@@ -49,7 +65,7 @@ function App() {
 
           <div>
             <div className="py-4"></div>
-            <Notification />
+            <NotificationButton />
           </div>
         </div>
         <div className="grid  grid-cols-1 md:grid-cols-2 justify-center px-8 py-2 items-center min-h-screen bg-gray-100">

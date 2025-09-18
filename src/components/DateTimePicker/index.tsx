@@ -61,7 +61,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
   ];
 
   const addDays = (date: Date, days: number) => {
-    const d = new Date(date);
+    const d = new Date(date.getTime());
     d.setDate(d.getDate() + days);
     return d;
   };
@@ -85,12 +85,14 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
   const handleQuickRange = (range: string) => {
     setQuickRange(range);
 
-    let startDate = today;
-    let endDate = today;
+    let startDate = new Date(today);
+    let endDate = new Date(today);
 
-    if (range === "next7days") endDate = addDays(today, 7);
-    if (range === "thismonth")
+    if (range === "next7days") {
+      endDate = addDays(today, 7);
+    } else if (range === "thismonth") {
       endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    }
 
     setRangeStartDate(startDate);
     setRangeEndDate(endDate);
@@ -100,12 +102,21 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
 
   const handleSet = () => {
     if (!selectedDate) return;
+
     const finalDateTime = new Date(selectedDate);
     let hour = selectedTime.hour;
+
     if (selectedTime.period === "PM" && hour !== 12) hour += 12;
     if (selectedTime.period === "AM" && hour === 12) hour = 0;
+
     finalDateTime.setHours(hour, selectedTime.minute, 0, 0);
-    onChange?.(finalDateTime);
+
+    if (quickRange && rangeStartDate && rangeEndDate) {
+      onChange?.(new Date(finalDateTime));
+    } else {
+      onChange?.(finalDateTime);
+    }
+
     setIsOpen(false);
   };
 
@@ -114,14 +125,26 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
     setQuickRange("");
     setRangeStartDate(null);
     setRangeEndDate(null);
+    setSelectedDate(value ?? null);
+    setCurrentMonth(value ?? new Date());
   };
 
   const isDateDisabled = (date: Date) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
-    if (d < today) return true;
-    if (minDate && d < minDate) return true;
-    if (maxDate && d > maxDate) return true;
+
+    if (minDate) {
+      const min = new Date(minDate);
+      min.setHours(0, 0, 0, 0);
+      if (d < min) return true;
+    }
+
+    if (maxDate) {
+      const max = new Date(maxDate);
+      max.setHours(0, 0, 0, 0);
+      if (d > max) return true;
+    }
+
     return false;
   };
 
@@ -375,7 +398,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 bg-slate-800 rounded-lg shadow-xl border border-gray-700 p-4 z-50 min-w-80">
+        <div className="absolute  mt-2 bg-slate-800 rounded-lg shadow-xl border border-gray-700 p-4 z-50 min-w-80">
           <div className="flex gap-2 mb-4">
             {quickRangeOptions.map((option) => (
               <button
@@ -411,8 +434,14 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
           </div>
 
           {(selectedDate || (quickRange && rangeEndDate)) && (
-            <div className="mt-2 text-xs text-gray-400 text-center">
-              {displayValue}
+            <div className="mt-2 text-xs text-gray-400 flex justify-between text-center">
+              <span>{displayValue}</span>{" "}
+              <span
+                className="text-red-400 cursor-pointer hover:text-red-600 "
+                onClick={() => handleCancel()}
+              >
+                Clear
+              </span>
             </div>
           )}
         </div>

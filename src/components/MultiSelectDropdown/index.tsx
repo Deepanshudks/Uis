@@ -1,43 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import type { OptionType } from "../../mocks/types";
 import { ChevronDown, Search, X } from "lucide-react";
+import { dropdownLoadOptions } from "../../mocks";
 
 interface MultiSelectDropdownProps {
-  options?: OptionType[];
-  loadOptions?: () => Promise<OptionType[]>;
   value?: OptionType[];
-  onChange?: (selected: OptionType[]) => void;
-  placeholder?: string;
-  searchable?: boolean;
-  clearable?: boolean;
-  disabled?: boolean;
-  className?: string;
-  maxHeight?: number;
+  setSelectedOptions?: (val: OptionType[]) => void;
 }
 
 export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
-  options: propOptions = [],
-  loadOptions,
   value = [],
-  onChange,
-  placeholder = "Select options...",
-  searchable = true,
-  clearable = true,
-  disabled = false,
-  className = "",
-  maxHeight = 200,
+  setSelectedOptions,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [options, setOptions] = useState<OptionType[]>(propOptions);
+  const [options, setOptions] = useState<OptionType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (propOptions.length > 0) {
-      setOptions(propOptions);
-    }
-  }, [propOptions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
@@ -48,7 +27,6 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         setIsOpen(false);
       }
     };
-
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
@@ -58,22 +36,23 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   useEffect(() => {
     const fetchOptions = async (): Promise<void> => {
-      if (!loadOptions || options.length > 0) return;
-
       setIsLoading(true);
       try {
-        const data = await loadOptions();
+        const data = await new Promise<OptionType[]>((resolve) =>
+          setTimeout(() => resolve(dropdownLoadOptions ?? []), 1000)
+        );
         setOptions(data);
       } catch (error) {
         console.error("Error loading options:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     if (isOpen) {
       fetchOptions();
     }
-  }, [isOpen, loadOptions, options.length]);
+  }, [isOpen, options.length, setSelectedOptions]);
 
   const filteredOptions = options.filter(
     (option) =>
@@ -83,30 +62,30 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   const handleSelect = (option: OptionType): void => {
     const newValue = [...value, option];
-    onChange?.(newValue);
+    setSelectedOptions?.(newValue);
     setSearchTerm("");
+    console.log("selected val", newValue);
   };
 
-  const handleRemove = (valueToRemove: string): void => {
-    const newValue = value.filter((item) => item.value !== valueToRemove);
-    onChange?.(newValue);
+  const handleRemove = (val: string): void => {
+    const newValue = value.filter((item) => item.value !== val);
+    setSelectedOptions?.(newValue);
   };
 
   const handleClearAll = (): void => {
-    onChange?.([]);
+    setSelectedOptions?.([]);
   };
 
   return (
-    <div ref={dropdownRef} className={`relative w-full ${className}`}>
-      <div
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`border border-gray-300 rounded-lg px-3 py-2 bg-white cursor-pointer min-h-[42px] flex items-center justify-between ${
-          disabled ? "opacity-50 cursor-not-allowed" : "hover:border-gray-400"
-        }`}
+    <div>
+      <div ref={dropdownRef} className=" relative">
+        {/* <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="border border-gray-300 rounded-lg px-3 py-2 bg-white cursor-pointer min-h-[42px] flex items-center justify-between hover:border-gray-400"
       >
         <div className="flex flex-wrap gap-1 flex-1">
           {value.length === 0 ? (
-            <span className="text-gray-500">{placeholder}</span>
+            <span className="text-gray-500">Select Options...</span>
           ) : (
             value.map((item) => (
               <span
@@ -120,7 +99,6 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                     handleRemove(item.value);
                   }}
                   className="hover:text-teal-600"
-                  disabled={disabled}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -128,15 +106,15 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             ))
           )}
         </div>
+
         <div className="flex items-center gap-2">
-          {clearable && value.length > 0 && (
+          {value.length > 0 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleClearAll();
               }}
               className="text-gray-400 hover:text-gray-600"
-              disabled={disabled}
             >
               <X className="w-4 h-4" />
             </button>
@@ -147,50 +125,98 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             }`}
           />
         </div>
-      </div>
+      </div> */}
 
-      {isOpen && (
-        <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50 overflow-hidden">
-          {searchable && (
-            <div className="p-2 border-b">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        {
+          <div className="absolute  w-full bg-white border border-gray-300 rounded-lg  z-50 overflow-hidden">
+            <div className="">
+              <div className="relative ">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search options..."
+                  placeholder="Search..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={() => setIsOpen(true)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                  }}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-teal-500"
                   autoFocus
                 />
               </div>
+              <div className="flex items-center gap-2 absolute right-3 top-5 -translate-y-1/2">
+                {value.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClearAll();
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                <ChevronDown
+                  onClick={() => setIsOpen(!isOpen)}
+                  className={`w-4 h-4 text-gray-500 transition-transform ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
             </div>
-          )}
 
-          <div style={{ maxHeight }} className="overflow-y-auto">
-            {isLoading ? (
-              <div className="p-4 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-500 mx-auto"></div>
-                <p className="mt-2">Loading options...</p>
+            {value.length > 0 && (
+              <div className="flex flex-wrap gap-1 p-2 flex-1">
+                {value.length === 0 ? (
+                  <></>
+                ) : (
+                  value.map((item) => (
+                    <span
+                      key={item.value}
+                      className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
+                    >
+                      {item.label}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemove(item.value);
+                        }}
+                        className="hover:text-teal-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))
+                )}
               </div>
-            ) : filteredOptions.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
-                No options available
-              </div>
-            ) : (
-              filteredOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleSelect(option)}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center justify-between"
-                >
-                  <span>{option.label}</span>
-                </button>
-              ))
             )}
+
+            <div className="max-h-60 overflow-y-auto">
+              {isLoading ? (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-500 mx-auto"></div>
+                  <p className="mt-2">Loading...</p>
+                </div>
+              ) : filteredOptions.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  No options available
+                </div>
+              ) : (
+                isOpen &&
+                filteredOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleSelect(option)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center justify-between"
+                  >
+                    <span>{option.label}</span>
+                  </button>
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        }
+      </div>
     </div>
   );
 };

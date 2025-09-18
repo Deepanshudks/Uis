@@ -1,5 +1,5 @@
 import React, { useState, type ChangeEvent, type DragEvent } from "react";
-import { File as FileIcon, Trash2 } from "lucide-react";
+import { File as FileIcon, Trash2, ViewIcon } from "lucide-react";
 import type { DocumentType } from "../../mocks";
 
 interface MultiDocumentUploadProps {
@@ -12,6 +12,7 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
   onChange,
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [title, setTitle] = useState("");
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -34,6 +35,11 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
     onChange(updatedDocs);
   };
 
+  const viewFile = (file: File) => {
+    const fileURL = URL.createObjectURL(file);
+    window.open(fileURL, "_blank");
+  };
+
   return (
     <div className="w-full max-w-lg mx-auto">
       <h2 className="text-sm font-semibold mb-2">Add Documents</h2>
@@ -41,7 +47,9 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
       <label className="block text-sm font-medium mb-1">Document Title</label>
       <input
         type="text"
-        placeholder="TEST DOCUMENT TWO"
+        placeholder="ENTER DOCUMENT TITLE"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
         className="w-full border border-green-400 rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-green-400 mb-4"
       />
 
@@ -87,12 +95,20 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
               <FileIcon size={16} className="text-gray-600" />
               <span className="text-sm">{doc.name}</span>
             </div>
-            <button
-              onClick={() => handleRemove(index)}
-              className="text-red-500 cursor-pointer hover:text-red-700"
-            >
-              <Trash2 size={16} />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => viewFile(doc.file)}
+                className="text-red-500 cursor-pointer hover:text-red-700"
+              >
+                <ViewIcon className="text-zinc-600" size={16} />
+              </button>
+              <button
+                onClick={() => handleRemove(index)}
+                className="text-red-500 cursor-pointer hover:text-red-700"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
         ))}
       </div>

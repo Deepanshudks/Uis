@@ -30,7 +30,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
   placeholder = "Select Date & Time",
   disabled = false,
   className = "",
-  minDate,
+  minDate = new Date(),
   maxDate,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -121,7 +121,6 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
   };
 
   const handleCancel = () => {
-    setIsOpen(false);
     setQuickRange("");
     setRangeStartDate(null);
     setRangeEndDate(null);
@@ -420,7 +419,10 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
 
           <div className="flex justify-between">
             <button
-              onClick={handleCancel}
+              onClick={() => {
+                handleCancel();
+                setIsOpen(false);
+              }}
               className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
             >
               Cancel

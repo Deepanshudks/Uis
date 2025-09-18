@@ -32,3 +32,12 @@ export const monthNames = [
 ];
 
 export const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export const sampleData: DataItem[] = [
+  { date: "2025-09-01", value: 400, category: "A" },
+  { date: "2025-09-05", value: 300, category: "B" },
+  { date: "2025-09-10", value: 200, category: "A" },
+  { date: "2025-09-15", value: 278, category: "B" },
+  { date: "2025-09-20", value: 189, category: "A" },
+  { date: "2025-09-25", value: 239, category: "B" },
+];

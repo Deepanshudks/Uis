@@ -58,3 +58,9 @@ export interface ChartWidgetProps {
   title?: string;
   className?: string;
 }
+
+export interface DataItem {
+  date: string;
+  value: number;
+  category: string;
+}

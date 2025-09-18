@@ -79,118 +79,70 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   return (
     <div>
       <div ref={dropdownRef} className=" relative">
-        {/* <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="border border-gray-300 rounded-lg px-3 py-2 bg-white cursor-pointer min-h-[42px] flex items-center justify-between hover:border-gray-400"
-      >
-        <div className="flex flex-wrap gap-1 flex-1">
-          {value.length === 0 ? (
-            <span className="text-gray-500">Select Options...</span>
-          ) : (
-            value.map((item) => (
-              <span
-                key={item.value}
-                className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
-              >
-                {item.label}
+        <div className="absolute  w-full bg-white border border-gray-300 rounded-lg  z-50 overflow-hidden">
+          <div className="">
+            <div className="relative ">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onClick={() => setIsOpen(true)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                }}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-teal-500"
+                autoFocus
+              />
+            </div>
+            <div className="flex items-center gap-2 absolute right-3 top-5 -translate-y-1/2">
+              {value.length > 0 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRemove(item.value);
+                    handleClearAll();
                   }}
-                  className="hover:text-teal-600"
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4" />
                 </button>
-              </span>
-            ))
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {value.length > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClearAll();
-              }}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-          <ChevronDown
-            className={`w-4 h-4 text-gray-500 transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </div>
-      </div> */}
-
-        {
-          <div className="absolute  w-full bg-white border border-gray-300 rounded-lg  z-50 overflow-hidden">
-            <div className="">
-              <div className="relative ">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onClick={() => setIsOpen(true)}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                  }}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-teal-500"
-                  autoFocus
-                />
-              </div>
-              <div className="flex items-center gap-2 absolute right-3 top-5 -translate-y-1/2">
-                {value.length > 0 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleClearAll();
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-                <ChevronDown
-                  onClick={() => setIsOpen(!isOpen)}
-                  className={`w-4 h-4 text-gray-500 transition-transform ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
+              )}
+              <ChevronDown
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-4 h-4 text-gray-500 transition-transform ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
             </div>
+          </div>
 
-            {value.length > 0 && (
-              <div className="flex flex-wrap gap-1 p-2 flex-1">
-                {value.length === 0 ? (
-                  <></>
-                ) : (
-                  value.map((item) => (
-                    <span
-                      key={item.value}
-                      className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
+          {value.length > 0 && (
+            <div className="flex flex-wrap gap-1 p-2 border-b border-zinc-200 flex-1">
+              {value.length === 0 ? (
+                <></>
+              ) : (
+                value.map((item) => (
+                  <span
+                    key={item.value}
+                    className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
+                  >
+                    {item.label}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(item.value);
+                      }}
+                      className="hover:text-teal-600"
                     >
-                      {item.label}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemove(item.value);
-                        }}
-                        className="hover:text-teal-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))
-                )}
-              </div>
-            )}
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+          )}
 
+          {isOpen && (
             <div className="max-h-60 overflow-y-auto">
               {isLoading ? (
                 <div className="p-4 text-center text-gray-500">
@@ -214,8 +166,8 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                 ))
               )}
             </div>
-          </div>
-        }
+          )}
+        </div>
       </div>
     </div>
   );

@@ -37,9 +37,12 @@ const ChartWidget: React.FC = () => {
     return current.isAfter(startDate) && current.isBefore(endDate);
   });
 
+  console.log(filteredData);
+
+  console.log(dayjs(allData[0].datea).format("YYYY-MM-DD"));
+
   return (
     <div className="bg-white px-2 sm:px-4 py-4 rounded shadow w-full overflow-x-auto">
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <select
           value={chartType}
@@ -71,7 +74,6 @@ const ChartWidget: React.FC = () => {
         </div>
       </div>
 
-      {/* Chart container with responsive height */}
       <div className="w-full h-64 sm:h-72 md:h-80 lg:h-96">
         {chartType === "bar" && (
           <ResponsiveContainer width="100%" height="100%">
@@ -79,8 +81,20 @@ const ChartWidget: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
+              <Tooltip defaultIndex={2} />
+
+              <Legend
+                width={100}
+                wrapperStyle={{
+                  bottom: 5,
+                  right: 20,
+                  backgroundColor: "#f5f5f5",
+                  border: "1px solid #d5d5d5",
+                  borderRadius: 5,
+                  lineHeight: "40px",
+                }}
+              />
+
               <Bar dataKey="value" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
@@ -113,7 +127,7 @@ const ChartWidget: React.FC = () => {
                 nameKey="date"
                 cx="50%"
                 cy="50%"
-                outerRadius="70%" // % keeps it responsive
+                outerRadius="70%"
                 fill="#8884d8"
                 label
               >

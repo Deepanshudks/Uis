@@ -4,24 +4,13 @@ import { DateTimePicker } from "./components/DateTimePicker";
 import { MultiDocumentUpload } from "./components/MultiDocumentUpload";
 import { MultiSelectDropdown } from "./components/MultiSelectDropdown";
 import { NotificationButton } from "./components/Notification";
-import { dropdownLoadOptions, type DocumentType } from "./mocks";
+import { type OptionType, type DocumentType } from "./mocks";
 
 import { useState } from "react";
-
-interface OptionType {
-  label: string;
-  value: string;
-}
 
 function App() {
   const [selectedOptions, setSelectedOptions] = useState<OptionType[]>([]);
   const [docs, setDocs] = useState<DocumentType[]>([]);
-
-  const loadOptions = async () => {
-    return new Promise<OptionType[]>((resolve) => {
-      setTimeout(() => resolve(dropdownLoadOptions), 500);
-    });
-  };
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
@@ -44,9 +33,8 @@ function App() {
           }}
         />
         <MultiSelectDropdown
-          loadOptions={loadOptions}
           value={selectedOptions}
-          onChange={(options) => setSelectedOptions(options)}
+          setSelectedOptions={setSelectedOptions}
         />
         <NotificationButton />
       </div>

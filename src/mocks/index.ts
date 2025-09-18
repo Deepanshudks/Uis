@@ -1,3 +1,5 @@
+import type { DataItem } from "./types";
+
 export interface OptionType {
   label: string;
   value: string;

@@ -78,7 +78,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   return (
     <div>
-      <div ref={dropdownRef} className=" relative">
+      <div ref={dropdownRef} className="z-10 relative">
         <div className="absolute  w-full bg-white border border-gray-300 rounded-lg  z-50 overflow-hidden">
           <div className="">
             <div className="relative ">
@@ -96,17 +96,6 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               />
             </div>
             <div className="flex items-center gap-2 absolute right-3 top-5 -translate-y-1/2">
-              {value.length > 0 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleClearAll();
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
               <ChevronDown
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-4 h-4 text-gray-500 transition-transform ${
@@ -121,23 +110,38 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               {value.length === 0 ? (
                 <></>
               ) : (
-                value.map((item) => (
-                  <span
-                    key={item.value}
-                    className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
-                  >
-                    {item.label}
+                <div className="flex justify-between w-full">
+                  <div className="flex gap-1 flex-wrap">
+                    {value.map((item) => (
+                      <span
+                        key={item.value}
+                        className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
+                      >
+                        {item.label}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemove(item.value);
+                          }}
+                          className="hover:text-teal-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  {value.length > 0 && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleRemove(item.value);
+                        handleClearAll();
                       }}
-                      className="hover:text-teal-600"
+                      className="text-gray-400 items-end  hover:text-gray-600"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
-                  </span>
-                ))
+                  )}
+                </div>
               )}
             </div>
           )}

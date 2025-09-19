@@ -26,7 +26,7 @@ function App() {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 p-8 bg-zinc-100 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 p-8 bg-zinc-50 sm:grid-cols-2 md:grid-cols-3">
         <DateTimePicker
           onChange={(date) => {
             console.log("Selected Date:", date.toLocaleString());
@@ -38,7 +38,7 @@ function App() {
         />
         <NotificationButton />
       </div>
-      <div className="grid gap-8 p-8 bg-zinc-100 sm:grid-cols-2 grid-cols-1">
+      <div className="grid gap-3  py-8 bg-zinc-50 sm:grid-cols-2 grid-cols-1">
         <ChartWidget />
         <MultiDocumentUpload value={docs} onChange={setDocs} />
       </div>

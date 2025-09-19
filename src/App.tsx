@@ -27,11 +27,7 @@ function App() {
   return (
     <>
       <div className="grid grid-cols-1 gap-4 p-8 bg-zinc-50 sm:grid-cols-2 md:grid-cols-3">
-        <DateTimePicker
-          onChange={(date) => {
-            console.log("Selected Date:", date.toLocaleString());
-          }}
-        />
+        <DateTimePicker />
         <MultiSelectDropdown
           value={selectedOptions}
           setSelectedOptions={setSelectedOptions}

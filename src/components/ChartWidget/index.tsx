@@ -83,12 +83,12 @@ export default function ChartWidget() {
         {chartType === "Bar" && (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={filteredData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3" />
               <XAxis dataKey="item" />
-              <YAxis domain={[0, 600]} tickCount={4} />
+              <YAxis domain={[0, 600]} tickCount={6} />
               <Tooltip content={<CustomTooltip />} />
               <Legend content={<CustomLegend />} />
-              <Bar dataKey="value" fill="#4F46E5" />
+              <Bar barSize={50} dataKey="value" fill="#4F46E5" />
             </BarChart>
           </ResponsiveContainer>
         )}

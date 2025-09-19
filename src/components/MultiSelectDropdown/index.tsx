@@ -16,6 +16,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [options, setOptions] = useState<OptionType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [keySelect, setkeySelect] = useState<number>(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setkeySelect(-1);
       }
     };
     if (isOpen) {
@@ -42,8 +44,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
           setTimeout(() => resolve(dropdownLoadOptions ?? []), 1000)
         );
         setOptions(data);
-      } catch (error) {
-        console.error("Error loading options:", error);
+      } catch (err) {
       } finally {
         setIsLoading(false);
       }
@@ -52,7 +53,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     if (isOpen) {
       fetchOptions();
     }
-  }, [isOpen, options.length, setSelectedOptions]);
+  }, [isOpen]);
 
   const filteredOptions = options.filter(
     (option) =>
@@ -64,7 +65,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     const newValue = [...value, option];
     setSelectedOptions?.(newValue);
     setSearchTerm("");
-    console.log("selected val", newValue);
+    setkeySelect(-1);
   };
 
   const handleRemove = (val: string): void => {
@@ -76,26 +77,66 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     setSelectedOptions?.([]);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (!isOpen) {
+      if (e.key === "ArrowDown") {
+        setIsOpen(true);
+        e.preventDefault();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setkeySelect((prev) =>
+          prev < filteredOptions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setkeySelect((prev) =>
+          prev > 0 ? prev - 1 : filteredOptions.length - 1
+        );
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (keySelect >= 0) {
+          handleSelect(filteredOptions[keySelect]);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setIsOpen(false);
+        setkeySelect(-1);
+        break;
+    }
+  };
+
   return (
     <div>
       <div ref={dropdownRef} className="z-10 relative">
-        <div className="absolute  w-full bg-white border border-gray-300 rounded-lg  z-50 overflow-hidden">
-          <div className="">
-            <div className="relative ">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onClick={() => setIsOpen(true)}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                }}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-teal-500"
-                autoFocus
-              />
-            </div>
-            <div className="flex items-center gap-2 absolute right-3 top-5 -translate-y-1/2">
+        <div
+          className="absolute w-full bg-white border border-gray-300 rounded-lg z-50 overflow-hidden"
+          role="combobox"
+          aria-expanded={isOpen}
+        >
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              role="searchbox"
+              aria-autocomplete="list"
+              placeholder="Search..."
+              value={searchTerm}
+              onClick={() => setIsOpen(true)}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-teal-500"
+              autoFocus
+            />
+            <div className="flex items-center gap-2 absolute right-3 top-1/2 -translate-y-1/2">
               <ChevronDown
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-4 h-4 text-gray-500 transition-transform ${
@@ -107,63 +148,68 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
           {value.length > 0 && (
             <div className="flex flex-wrap gap-1 p-2 border-b border-zinc-200 flex-1">
-              {value.length === 0 ? (
-                <></>
-              ) : (
-                <div className="flex justify-between w-full">
-                  <div className="flex gap-1 flex-wrap">
-                    {value.map((item) => (
-                      <span
-                        key={item.value}
-                        className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
-                      >
-                        {item.label}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemove(item.value);
-                          }}
-                          className="hover:text-teal-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  {value.length > 0 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClearAll();
-                      }}
-                      className="text-gray-400 items-end  hover:text-gray-600"
+              <div className="flex justify-between w-full">
+                <div className="flex gap-1 flex-wrap">
+                  {value.map((item) => (
+                    <span
+                      key={item.value}
+                      className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-sm"
                     >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+                      {item.label}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemove(item.value);
+                        }}
+                        className="hover:text-teal-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-              )}
+                {value.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClearAll();
+                    }}
+                    className="text-gray-400 items-end hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
           {isOpen && (
-            <div className="max-h-60 overflow-y-auto">
+            <div
+              className="max-h-60 overflow-y-auto"
+              role="listbox"
+              aria-activedescendant={
+                keySelect >= 0
+                  ? `option-${filteredOptions[keySelect].value}`
+                  : undefined
+              }
+            >
               {isLoading ? (
-                <div className="p-4 text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-500 mx-auto"></div>
-                  <p className="mt-2">Loading...</p>
-                </div>
+                <div className="p-4 text-center text-gray-500">Loading...</div>
               ) : filteredOptions.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
                   No options available
                 </div>
               ) : (
-                isOpen &&
-                filteredOptions.map((option) => (
+                filteredOptions.map((option, idx) => (
                   <button
+                    id={`option-${option.value}`}
                     key={option.value}
                     onClick={() => handleSelect(option)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center justify-between"
+                    className={`w-full text-left px-4 py-2 flex items-center justify-between ${
+                      idx === keySelect ? "bg-gray-100" : ""
+                    }`}
+                    role="option"
+                    aria-selected={idx === keySelect}
                   >
                     <span>{option.label}</span>
                   </button>

@@ -15,6 +15,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { sampleData } from "../../mocks";
+import { CustomLegend } from "./CustomLegend";
+import { CustomTooltip } from "./CustomTooltip";
 
 export default function ChartWidget() {
   const [chartType, setChartType] = useState("Bar");
@@ -27,7 +29,7 @@ export default function ChartWidget() {
     });
   }, [startDate, endDate]);
 
-  const colors = ["#4F46E5", "#22C55E", "#FACC15", "#F43F5E"];
+  const colors = ["#2563EB", "#16A34A", "#EAB308", "#DC2626"];
 
   const pieData = useMemo(() => {
     const grouped: { [key: string]: number } = {};
@@ -82,8 +84,8 @@ export default function ChartWidget() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={filteredData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
+              <XAxis dataKey="item" />
+              <YAxis domain={[0, 600]} tickCount={4} />
               <Tooltip content={<CustomTooltip />} />
               <Legend content={<CustomLegend />} />
               <Bar dataKey="value" fill="#4F46E5" />
@@ -95,7 +97,7 @@ export default function ChartWidget() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={filteredData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="item" />
               <YAxis />
               <Tooltip />
               <Legend />
@@ -106,16 +108,14 @@ export default function ChartWidget() {
 
         {chartType === "Pie" && (
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart className="p-8">
               <Tooltip />
-              <Legend />
+              <Legend content={<CustomLegend />} />
               <Pie
                 data={pieData}
                 dataKey="value"
                 nameKey="category"
-                cx="50%"
-                cy="50%"
-                outerRadius={120}
+                outerRadius={100}
                 fill="#4F46E5"
                 label
               >
@@ -133,36 +133,3 @@ export default function ChartWidget() {
     </div>
   );
 }
-
-export const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white border shadow-md rounded-md p-2 text-xs">
-        <p className="font-medium">Date: {label}</p>
-        {payload.map((p: any, idx: number) => (
-          <p key={idx} style={{ color: p.color }}>
-            {p.name}: <span className="font-semibold">{p.value}</span>
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
-export const CustomLegend = (props: any) => {
-  const { payload } = props;
-  return (
-    <ul className="flex flex-wrap gap-4 justify-end mt-2 text-xs">
-      {payload.map((entry: any, index: number) => (
-        <li key={`item-${index}`} className="flex items-center gap-1">
-          <span
-            className="w-3 h-3 rounded-sm inline-block"
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-gray-700">{entry.value}</span>
-        </li>
-      ))}
-    </ul>
-  );
-};

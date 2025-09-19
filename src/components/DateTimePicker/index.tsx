@@ -38,6 +38,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(value ?? new Date());
   const [rangeStartDate, setRangeStartDate] = useState<Date | null>(null);
   const [rangeEndDate, setRangeEndDate] = useState<Date | null>(null);
+  const [date, setDate] = useState<String>(placeholder);
 
   const [selectedTime, setSelectedTime] = useState<TimeState>(() => {
     const date = value ?? new Date();
@@ -100,10 +101,19 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
     setCurrentMonth(startDate);
   };
 
-  const handleSet = () => {
-    if (!selectedDate) return;
+  const displayValue =
+    quickRange && rangeStartDate && rangeEndDate
+      ? `${rangeStartDate.toLocaleDateString()} - ${rangeEndDate.toLocaleDateString()}`
+      : selectedDate
+      ? `${selectedDate.toLocaleDateString()}, ${selectedTime.hour
+          .toString()
+          .padStart(2, "0")}:${selectedTime.minute
+          .toString()
+          .padStart(2, "0")} ${selectedTime.period}`
+      : placeholder;
 
-    const finalDateTime = new Date(selectedDate);
+  const handleSet = () => {
+    const finalDateTime = new Date(selectedDate ?? "");
     let hour = selectedTime.hour;
 
     if (selectedTime.period === "PM" && hour !== 12) hour += 12;
@@ -116,6 +126,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
     } else {
       onChange?.(finalDateTime);
     }
+    setDate(displayValue);
 
     setIsOpen(false);
   };
@@ -207,7 +218,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
 
     return (
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center z-50 justify-between mb-4">
           <button
             onClick={() =>
               setCurrentMonth(new Date(currentYear, currentMonthIndex - 1))
@@ -367,17 +378,6 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
     </div>
   );
 
-  const displayValue =
-    quickRange && rangeStartDate && rangeEndDate
-      ? `${rangeStartDate.toLocaleDateString()} - ${rangeEndDate.toLocaleDateString()}`
-      : selectedDate
-      ? `${selectedDate.toLocaleDateString()}, ${selectedTime.hour
-          .toString()
-          .padStart(2, "0")}:${selectedTime.minute
-          .toString()
-          .padStart(2, "0")} ${selectedTime.period}`
-      : placeholder;
-
   return (
     <div ref={widgetRef} className={`relative ${className}`}>
       <button
@@ -388,7 +388,7 @@ export const DateTimePicker: React.FC<DateTimeWidgetProps> = ({
         }`}
       >
         <Calendar className="w-4 h-4 text-gray-500" />
-        <span className="text-sm flex-1 text-left">{displayValue}</span>
+        <span className="text-sm flex-1 text-left">{date}</span>
         <ChevronDown
           className={`w-4 h-4 text-gray-500 transition-transform ${
             isOpen ? "rotate-180" : ""

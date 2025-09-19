@@ -60,6 +60,7 @@ export interface ChartWidgetProps {
 }
 
 export interface DataItem {
+  item: string;
   date: string;
   value: number;
   category: string;

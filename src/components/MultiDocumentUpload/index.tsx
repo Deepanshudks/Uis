@@ -12,6 +12,7 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
   onChange,
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [title, setTitle] = useState("");
 
   const handleFiles = (files: FileList | null) => {
@@ -40,8 +41,26 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
     window.open(fileURL, "_blank");
   };
 
+  const handleSave = async () => {
+    setIsPending(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const serializableDocs = value.map((doc) => ({
+      name: doc.name,
+    }));
+    alert(
+      "Document uploaded! " +
+        "Title " +
+        title +
+        " " +
+        JSON.stringify(serializableDocs)
+    );
+    setTitle("");
+    onChange?.([]);
+    setIsPending(false);
+  };
+
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-[80%] mx-auto">
       <h2 className="text-sm font-semibold mb-2">Add Documents</h2>
 
       <label className="block text-sm font-medium mb-1">Document Title</label>
@@ -50,28 +69,14 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
         placeholder="ENTER DOCUMENT TITLE"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full border border-green-400 rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-green-400 mb-4"
+        className="w-full border border-green-400 rounded-md p-2 text-zinc-500 focus:outline-none focus:ring-1 focus:ring-green-400 mb-4"
       />
 
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragActive(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setDragActive(false);
-          }}
-          onDrop={handleDrop}
-          className={`flex-1 p-3 text-center border-2 border-dashed rounded-md cursor-pointer ${
-            dragActive ? "border-emerald-500 bg-emerald-50" : "border-gray-300"
-          }`}
-        >
-          <p className="text-gray-500">Drag and Drop file here</p>
-          <p>
-            <label className=" text-blue-500 text-xs  px-6 py-3 rounded-full cursor-pointer flex-1 text-center">
-              Add file
+      <div className="flex bg-teal-50 rounded-lg p-2 items-center gap-3 mb-4">
+        <div className="w-1/2 ">
+          <p className="  text-white bg-teal-400  font-bold text-lg px-6 py-2 hover:bg-teal-500 rounded-full cursor-pointer flex-1 text-center">
+            <label className="">
+              Browse
               <input
                 type="file"
                 multiple
@@ -82,6 +87,23 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
               />
             </label>
           </p>
+        </div>
+        <p className="font-bold text-zinc-700">OR</p>
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragActive(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setDragActive(false);
+          }}
+          onDrop={handleDrop}
+          className={`flex-1 p-3 text-center border-2 border-dashed rounded-full cursor-pointer ${
+            dragActive ? "border-emerald-500 bg-emerald-50" : "border-gray-300"
+          }`}
+        >
+          <p className="text-gray-500">Drag and Drop file here</p>
         </div>
       </div>
 
@@ -114,11 +136,15 @@ export const MultiDocumentUpload: React.FC<MultiDocumentUploadProps> = ({
       </div>
 
       <div className="flex justify-between mt-4">
-        <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">
+        <button className="bg-gray-200 text-gray-800 cursor-pointer px-4 py-2 rounded-md hover:bg-gray-300">
           Cancel
         </button>
-        <button className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800">
-          Add Document
+        <button
+          onClick={handleSave}
+          disabled={isPending}
+          className="bg-black text-white w-40 cursor-pointer px-4 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50"
+        >
+          {isPending ? "Saving..." : "Add Document"}
         </button>
       </div>
     </div>
